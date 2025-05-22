@@ -4,6 +4,11 @@ const cors = require('cors')
 const User = require('./models/User');
 const mongoose = require('mongoose')
 require('dotenv').config()
+// console.log('Loaded MONGO_URI:', process.env.MONGO_URI);
+
+
+const uri = process.env.MONGO_URI;
+console.log('Mongo URI:', uri); // For debugging
 
 app.use(cors())
 app.use(express.static('public'))
@@ -70,13 +75,6 @@ app.get('/api/users/:_id/logs', async (req, res) => {
     log: logs
   });
 });
-
-
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => console.log("✅ MongoDB connected"))
-  .catch(err => console.error("❌ MongoDB connection error:", err));
 
 
 
