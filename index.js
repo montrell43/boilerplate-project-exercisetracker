@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+const User = require('./models/User');
+const mongoose = require('mongoose')
 require('dotenv').config()
 
 app.use(cors())
@@ -70,7 +72,11 @@ app.get('/api/users/:_id/logs', async (req, res) => {
 });
 
 
-
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => console.log("✅ MongoDB connected"))
+  .catch(err => console.error("❌ MongoDB connection error:", err));
 
 
 
