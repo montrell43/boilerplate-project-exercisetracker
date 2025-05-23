@@ -4,14 +4,35 @@ const cors = require('cors')
 const User = require('./models/User');
 const mongoose = require('mongoose')
 require('dotenv').config()
+let bodyParser = require('body-parser')
 // console.log('Loaded MONGO_URI:', process.env.MONGO_URI);
 
 
 const uri = process.env.MONGO_URI;
 console.log('Mongo URI:', uri); // For debugging
 
+let mongoose;
+try{
+  mongoose = require('mongoose');
+} catch (e) {
+  console.log(e);
+}
+
+// Mongoose set up
+mongoose.connect(process.env.MONGO_URI, { userNewUrlParser: true, useUnfiledTopology: true });
+const Schema = mongoose.Schema;
+
+// Schema
+const userSchema = new Schemaa({
+  username: {type: String, require: true}
+})
+let userModel = mongoose.model("user", userSchema);
+
+
+
 app.use(cors())
 app.use(express.static('public'))
+app.use("/", bodyParser.urlencoded({ extended: file }));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -20,11 +41,15 @@ app.get('/', (req, res) => {
 });
 
 // POST - create a new user
-app.post('/api/users', async (req, res) => {
-  const { username } = req.body;
-  const user = new User({ username });
-  await user.save();
-  res.json({ username: user.username, _id: user._id });
+app.post('/api/users', (req, res) => {
+  // const { username } = req.body;
+  // const user = new User({ username });
+  // await user.save();
+  // res.json({ username: user.username, _id: user._id });
+let username = userModel({username: username});
+let newUser = userModel({username: username});
+newUser.save();
+res.json(newUser);
 });
 
 // GET - all users
