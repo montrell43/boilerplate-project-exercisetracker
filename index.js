@@ -1,13 +1,85 @@
 require('dotenv').config()
 
-// const express = require('express')
+ const express = require('express')
 const mongoose = require('mongoose');
-// const cors = require('cors')
-// const app = express()
+ const cors = require('cors')
+ const bodyParser = require('body-parser');
+ const app = express()
+ const User = require('./models/User')
 
 const uri = process.env.MONGO_URI;
 console.log('Mongo URI:', uri); 
 
+app.use(cors());
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+app.use(express.static('public'));
+
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/views/index.html');
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const user = new User({ username: req.body.username });
+    await user.save();
+    res.json({ username: user.username, _id: user._id });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+});
+
+app.get('/api/users', async (req, res) => {
+  const users = await User.find({}, 'username _id');
+  res.json(users);
+});
+
+app.post('/api/users/:_id/exercises', async (req, res) => {
+  const { description, duration, date } = req.body;
+  const user = await User.findById(req.params._id);
+  if (!user) return res.status(404).send("User not found");
+
+  const exercise = {
+    description,
+    duration: parseInt(duration),
+    date: date ? new Date(date) : new Date()
+  };
+
+  user.log.push(exercise);
+  await user.save();
+
+  res.json({
+    username: user.username,
+    description: exercise.description,
+    duration: exercise.duration,
+    date: exercise.date.toDateString(),
+    _id: user._id
+  });
+});
+
+
+app.get('/api/users/:_id/logs', async (req, res) => {
+  const { from, to, limit } = req.query;
+  const user = await User.findById(req.params._id);
+  if (!user) return res.status(404).send("User not found");
+
+  let log = user.log;
+
+  if (from) log = log.filter(e => new Date(e.date) >= new Date(from));
+  if (to) log = log.filter(e => new Date(e.date) <= new Date(to));
+  if (limit) log = log.slice(0, +limit);
+
+  res.json({
+    username: user.username,
+    count: log.length,
+    _id: user._id,
+    log: log.map(e => ({
+      description: e.description,
+      duration: e.duration,
+      date: e.date.toDateString()
+    }))
+  });
+});
 
 
 //const uri = 'MONGO_URI=mongodb+srv://tmerriweather%40perseverenow.org:LETSGETIT123@cluster0.jnvwutc.mongodb.net/exercise-tracker?retryWrites=true&w=majority';
